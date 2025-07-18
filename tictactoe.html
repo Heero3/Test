@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Tic Tac Toe</title>
+
+    <link rel="stylesheet" href="tictactoe.css">
+    <style>
+#game {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  gap: 5px;
+}
+.row {
+  display: contents;
+}
+.cell {
+  width: 100px;
+  height: 100px;
+  border: 1px solid black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2em;
+  cursor: pointer;
+}
+.status {
+    margin-top: 20px;
+    font-size: 1.5em;
+
+}
+</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+
+    <div id="game">
+        <div class = "row">
+        <div class="cell" data-id="0"></div>
+        <div class="cell" data-id="1"></div>
+        <div class="cell" data-id="2"></div>
+        <div class="cell" data-id="3"></div>
+        <div class="cell" data-id="4"></div>
+        <div class="cell" data-id="5"></div>
+        <div class="cell" data-id="6"></div>
+        <div class="cell" data-id="7"></div>
+        <div class="cell" data-id="8"></div>
+    </div>
+    </div>
+    <div class="status"></div>
+
+    
+
+    <button onclick="resetGame()" style = margin-top:10px;>Restart</button>"
+    <script>
+        const board = Array.from(document.querySelectorAll('.cell'));
+        const statusDisplay = document.querySelector('.status');
+        let currentPlayer = 'X';
+        let gameOver = false;
+
+        board.forEach(cell => {
+            cell.addEventListener('click', () => {
+                if (cell.textContent === '' && !gameOver && currentPlayer === 'X') {
+                    makeMove(cell);
+                    if (!gameOver) {
+                        setTimeout(botMove, 500); // Bot moves after a short delay
+                    }
+                }
+            });
+        });
+
+
+         function makeMove(cell) {
+            cell.textContent = currentPlayer;
+            checkWin();
+            if (!gameOver) {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                statusDisplay.textContent = `${currentPlayer}'s turn`;
+            }
+        }
+
+        function botMove() {
+            if (gameOver|| currentPlayer !=="O") return;
+            let move = findWinningMove('O') ||
+            findWinningMove ('X') ||
+            findRandomMove();
+
+            if (move) {
+                makeMove(board[move]);
+            }
+        }
+        function findWinningMove(player) {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+                [0, 4, 8], [2, 4, 6] // diagonals
+            ];
+
+             for (const pattern of winPatterns) {
+                const [a, b, c] = pattern;
+                // Check for two in a row and one empty
+                if (board[a].textContent === player && 
+                    board[b].textContent === player && 
+                    board[c].textContent === '') return c;
+                if (board[a].textContent === player && 
+                    board[c].textContent === player && 
+                    board[b].textContent === '') return b;
+                if (board[b].textContent === player && 
+                    board[c].textContent === player && 
+                    board[a].textContent === '') return a;
+            }
+            return null;
+        }
+
+ function findRandomMove() {
+            const emptyCells = board
+                .map((cell, index) => cell.textContent === '' ? index : null)
+                .filter(val => val !== null);
+            
+            if (emptyCells.length > 0) {
+                return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            }
+            return null;
+        }
+
+        function checkWin() {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+                [0, 4, 8], [2, 4, 6] // diagonals
+            ];
+
+            for (const pattern of winPatterns) {
+                const [a, b, c] = pattern;
+                if (board[a].textContent && 
+                    board[a].textContent === board[b].textContent && 
+                    board[a].textContent === board[c].textContent) {
+                    statusDisplay.textContent = `${board[a].textContent} wins!`;
+                    highlightWinningCells([a, b, c]);
+                    gameOver = true;
+                    return;
+                }
+            }
+
+            if (board.every(cell => cell.textContent)) {
+                statusDisplay.textContent = 'It\'s a draw!';
+                gameOver = true;
+            }
+
+             function highlightWinningCells(cells) {
+            cells.forEach(index => {
+                board[index].style.backgroundColor = 'lightgreen';
+            });
+        }
+    }
+
+        function resetGame(){
+        board.forEach(cell => {
+            cell.textContent = '';
+            cell.style.backgroundColor = '';
+        });
+            statusDisplay.textContent = '';
+            currentPlayer = 'X';
+            gameOver = false;
+        }
+    </script>
+</body>
+</html>
