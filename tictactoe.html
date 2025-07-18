@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Tic Tac Toe</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="tictactoe.css">
+    <style>
+#game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+#game {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  grid-template-rows: repeat(3, 100px);
+  gap: 5px;
+}
+
+.cell {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3em;
+  cursor: pointer;
+  background-color: #f8f9fa;
+  transition: all 0.3s ease;
+  border: 2px solid #333;
+}
+
+.cell:hover {
+  background-color: #e9ecef;
+}
+.status {
+  margin: 20px 0;
+  font-size: 1.5em;
+  font-weight: bold;
+  text-align: center;
+}
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+button:hover {
+  background-color: #0056b3;
+}
+.X { color: #dc3545; }
+.O { color: #28a745; }
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.cell.X, .cell.O {
+  animation: fadeIn 0.3s ease-out;
+}
+.winning-cell {
+  background-color: #d4edda;
+  box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+}
+.scores {
+  display: flex;
+  justify-content: space-around;
+  width: 200px;
+  margin: 0 auto 20px;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+.scores span {
+  color: #007bff;
+}
+
+#result-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+#result-message {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.win { color: #2ecc71; }
+.lose { color: #e74c3c; }
+.draw { color: #f39c12; }
+
+/* Add this to ensure font applies to all elements */
+* {
+  font-family: 'Poppins', sans-serif !important;
+}
+
+/* Specific elements for clarity */
+body, .cell, .status, #result-message, button, h1 {
+  font-family: 'Poppins', sans-serif !important;
+}
+</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+
+    <div class="scores">
+      <div>X: <span id="score-x">0</span></div>
+      <div>O: <span id="score-o">0</span></div>
+    </div>
+
+    <div id="game-container">
+        <div id="game">
+            <div class="cell" data-id="0"></div>
+            <div class="cell" data-id="1"></div>
+            <div class="cell" data-id="2"></div>
+            <div class="cell" data-id="3"></div>
+            <div class="cell" data-id="4"></div>
+            <div class="cell" data-id="5"></div>
+            <div class="cell" data-id="6"></div>
+            <div class="cell" data-id="7"></div>
+            <div class="cell" data-id="8"></div>
+        </div>
+        <div id="result-container">
+          <div id="result-message"></div>
+          <button id="restart-button" class="hidden">Play Again</button>
+        </div>
+        <div class="status"></div>
+    </div>
+
+    <script>
+        const board = Array.from(document.querySelectorAll('.cell'));
+        const statusDisplay = document.querySelector('.status');
+        const scoreDisplayX = document.querySelector('#score-x');
+        const scoreDisplayO = document.querySelector('#score-o');
+        let currentPlayer = 'X';
+        let gameOver = false;
+        let scoreX = 0;
+        let scoreO = 0;
+
+        board.forEach(cell => {
+            cell.addEventListener('click', () => {
+                if (cell.textContent === '' && !gameOver) {
+                    makeMove(cell);
+                }
+            });
+        });
+
+        function makeMove(cell) {
+          if (gameOver || cell.textContent !== '') return;
+          
+          cell.textContent = currentPlayer;
+          cell.classList.add(currentPlayer);
+          checkWin();
+          
+          if (!gameOver) {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            updateTurnIndicator();
+            
+            if (currentPlayer === 'O') {
+              setTimeout(botMove, 500);
+            }
+          }
+        }
+
+        function resetGame() {
+            // Clear the board
+            board.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('X', 'O', 'winning-cell');
+            });
+            
+            // Reset game state
+            currentPlayer = 'X';
+            gameOver = false;
+            updateTurnIndicator();
+            
+            // Clear any result message
+            document.getElementById('result-message').textContent = '';
+            document.getElementById('restart-button').classList.add('hidden');
+        }
+
+        function botMove() {
+          if (gameOver || currentPlayer !== "O") return;
+          const move = findBestMove();
+          if (move !== -1 && move !== undefined) {
+            makeMove(board[move]);
+          }
+        }
+
+        function minimax(boardState, depth, isMaximizing) {
+          // Check terminal states
+          const winner = checkBoardWinner(boardState);
+          if (winner === 'O') return 10 - depth;
+          if (winner === 'X') return depth - 10;
+          if (isBoardFull(boardState)) return 0;
+
+          if (isMaximizing) {
+            let bestScore = -Infinity;
+            for (let i = 0; i < 9; i++) {
+              if (boardState[i] === '') {
+                boardState[i] = 'O';
+                let score = minimax(boardState, depth + 1, false);
+                boardState[i] = '';
+                bestScore = Math.max(score, bestScore);
+              }
+            }
+            return bestScore;
+          } else {
+            let bestScore = Infinity;
+            for (let i = 0; i < 9; i++) {
+              if (boardState[i] === '') {
+                boardState[i] = 'X';
+                let score = minimax(boardState, depth + 1, true);
+                boardState[i] = '';
+                bestScore = Math.min(score, bestScore);
+              }
+            }
+            return bestScore;
+          }
+        }
+
+        function findBestMove() {
+          const boardState = board.map(cell => cell.textContent);
+          let bestScore = -Infinity;
+          let bestMove = -1;
+
+          for (let i = 0; i < 9; i++) {
+            if (boardState[i] === '') {
+              boardState[i] = 'O';
+              let score = minimax(boardState, 0, false);
+              boardState[i] = '';
+              if (score > bestScore) {
+                bestScore = score;
+                bestMove = i;
+              }
+            }
+          }
+          return bestMove;
+        }
+
+        function checkBoardWinner(boardState) {
+          const winPatterns = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+            [0, 4, 8], [2, 4, 6] // diagonals
+          ];
+
+          for (const pattern of winPatterns) {
+            const [a, b, c] = pattern;
+            if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
+              return boardState[a];
+            }
+          }
+          return null;
+        }
+
+        function isBoardFull(boardState) {
+          return boardState.every(cell => cell !== '');
+        }
+
+        function checkWin() {
+          const winPatterns = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+            [0, 4, 8], [2, 4, 6] // diagonals
+          ];
+
+          for (const pattern of winPatterns) {
+            const [a, b, c] = pattern;
+            if (board[a].textContent && 
+                board[a].textContent === board[b].textContent && 
+                board[a].textContent === board[c].textContent) {
+      
+              highlightWinningCells([a, b, c]);
+      
+              const resultMsg = document.getElementById('result-message');
+              if (board[a].textContent === 'X') {
+                showResult('You Win!', 'win');
+                scoreX++;
+                scoreDisplayX.textContent = scoreX;
+              } else {
+                showResult('Computer Wins!', 'lose');
+                scoreO++;
+                scoreDisplayO.textContent = scoreO;
+              }
+      
+              gameOver = true;
+              return;
+            }
+          }
+
+          if (board.every(cell => cell.textContent)) {
+            showResult('It\'s a Draw!', 'draw');
+            gameOver = true;
+          }
+        }
+
+        function highlightWinningCells(cells) {
+          cells.forEach(index => {
+            board[index].classList.add('winning-cell');
+          });
+        }
+
+        function updateTurnIndicator() {
+          statusDisplay.textContent = `${currentPlayer}'s turn`;
+        }
+
+        function showResult(message, resultClass) {
+          const resultMsg = document.getElementById('result-message');
+          const restartButton = document.getElementById('restart-button');
+          
+          resultMsg.textContent = message;
+          resultMsg.className = resultClass;
+          restartButton.classList.remove('hidden');
+        }
+
+        document.getElementById('restart-button').addEventListener('click', () => {
+          resetGame();
+        });
+    </script>
+</body>
+</html>
