@@ -165,5 +165,28 @@
             gameOver = false;
         }
     </script>
+    <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyBLObx3XVJnqaKnEpZM6MQWWGMTE88q-BM",
+    authDomain: "mini-games-f98a5.firebaseapp.com",
+    projectId: "mini-games-f98a5",
+    storageBucket: "mini-games-f98a5.firebasestorage.app",
+    messagingSenderId: "394936593659",
+    appId: "1:394936593659:web:c714d9ab3aec6897add45e",
+    measurementId: "G-JXW0LCNBN2"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
 </body>
 </html>
